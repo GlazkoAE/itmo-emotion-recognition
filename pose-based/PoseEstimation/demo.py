@@ -27,12 +27,13 @@ if __name__ == "__main__":
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
         # Get landmarks
-        landmarks = tracker.get_landmarks(image).pose_landmarks
+        landmarks = tracker.get_landmarks(image)
 
         # Draw landmark annotation on the image
         image.flags.writeable = True
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         tracker.draw_pose(image, landmarks)
+        tracker.draw_hands(image, landmarks)
 
         # Flip the image horizontally for a selfie-view display
         cv2.imshow('Pose and face estimation demo', cv2.flip(image, 1))

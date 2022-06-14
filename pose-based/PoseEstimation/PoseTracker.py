@@ -28,7 +28,6 @@ class PoseTracker:
                  smooth_segmentation=True,
                  min_detection_confidence=0.5,
                  min_tracking_confidence=0.5):
-
         self.static_image_mode = static_image_mode
         self.model_complexity = model_complexity
         self.smooth_landmarks = smooth_landmarks
@@ -37,25 +36,43 @@ class PoseTracker:
         self.min_detection_confidence = min_detection_confidence
         self.min_tracking_confidence = min_tracking_confidence
 
-        self.tracker = mp.solutions.pose.Pose(static_image_mode=self.static_image_mode,
-                                              model_complexity=self.model_complexity,
-                                              smooth_landmarks=self.smooth_landmarks,
-                                              enable_segmentation=self.enable_segmentation,
-                                              smooth_segmentation=self.smooth_segmentation,
-                                              min_detection_confidence=self.min_detection_confidence,
-                                              min_tracking_confidence=self.min_tracking_confidence)
+        self.tracker = mp.solutions.holistic.Holistic(static_image_mode=self.static_image_mode,
+                                                      model_complexity=self.model_complexity,
+                                                      smooth_landmarks=self.smooth_landmarks,
+                                                      enable_segmentation=self.enable_segmentation,
+                                                      smooth_segmentation=self.smooth_segmentation,
+                                                      min_detection_confidence=self.min_detection_confidence,
+                                                      min_tracking_confidence=self.min_tracking_confidence)
 
         self.drawing = mp.solutions.drawing_utils
 
     def get_landmarks(self, image: ndarray):
         """
-        Processes an image and returns the pose landmarks
+        Processes an image and returns the face, hands and pose landmarks
         on the most prominent person detected.
 
         :param image: an RGB image as numpy ndarray
-        :return: landmarks on the most prominent person detected
+        :return: NamedTuple with the landmarks on the most prominent person detected
         """
         return self.tracker.process(image)
+
+    def draw_hands(self, image, landmarks):
+        """
+        Draw landmarks and connections of hands.
+
+        :param ndarray image: an BGR image as numpy ndarray
+        :param typing.NamedTuple landmarks: all landmarks from get_landmarks function
+        """
+        self.drawing.draw_landmarks(
+            image,
+            landmarks.left_hand_landmarks,
+            mp.solutions.holistic.HAND_CONNECTIONS
+        )
+        self.drawing.draw_landmarks(
+            image,
+            landmarks.right_hand_landmarks,
+            mp.solutions.holistic.HAND_CONNECTIONS
+        )
 
     def draw_pose(self, image, landmarks):
         """
@@ -66,7 +83,7 @@ class PoseTracker:
         """
         self.drawing.draw_landmarks(
             image,
-            landmarks,
+            landmarks.pose_landmarks,
             mp.solutions.holistic.POSE_CONNECTIONS,
             landmark_drawing_spec=mp.solutions.drawing_styles.get_default_pose_landmarks_style()
         )

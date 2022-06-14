@@ -36,7 +36,7 @@ if __name__ == "__main__":
         tracker.draw_hands(image, landmarks)
 
         # Flip the image horizontally for a selfie-view display
-        cv2.imshow('Pose and face estimation demo', cv2.flip(image, 1))
+        cv2.imshow('Pose and hands estimation demo', cv2.flip(image, 1))
 
         # Flip the image horizontally for a selfie-view display
         if cv2.waitKey(5) & 0xFF == 27:

@@ -60,8 +60,8 @@ class WebcamVideoStream:
 class face_detector:
     
     def __init__(self, w: int = 480, h: int = 360):
-        self.net = cv2.dnn.readNetFromCaffe('/home/mangaboba/environ/itmo-emotion-recognition/gui-app/deploy.prototxt',
-                    '/home/mangaboba/environ/itmo-emotion-recognition/gui-app/res10_300x300_ssd_iter_140000.caffemodel')
+        self.net = cv2.dnn.readNetFromCaffe('./deploy.prototxt',
+                    './res10_300x300_ssd_iter_140000.caffemodel')
         # self.net = cv2.dnn.readNetFromCaffe(configFile, modelFile)
         self.w, self.h = w, h
     

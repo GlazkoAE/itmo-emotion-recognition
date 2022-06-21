@@ -11,6 +11,7 @@ class App:
         self.window2 = None
         self.webcam_frames_grabber  = None
         self.fps = FPS()
+        self.face_detector = face_detector()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.models = None # self.__set_models()
 
@@ -64,19 +65,19 @@ class App:
                     # some frame processing
                     # processed_frame = self.models['hand_model'](frame) -> np.array
                     processed_frame = frame 
-                    
+                    self.face_detector(frame)
                     imgbytes = cv2.imencode('.png',processed_frame)[1].tobytes()
                     self.window1['-IMAGE-'].update(data = imgbytes)
                     self.window1['-TEXT-'].update(value=int(self.fps.fps()))               
                         
-                elif event == '-SOMEEVENT-' and not self.window2:
+                if event == '-SOMEEVENT-' and not self.window2:
                     self.window2 = make_win2()
 
                 elif event == '-IN-':          
                     pass
         
                 elif (event == '-CAMSTREAM-') and (values['-IN-'] == '') and \
-                     (self.webcam_frames_grabber is None):
+                     (self.webcam_frames_grabber == None):
                     self.webcam_frames_grabber = WebcamVideoStream(src=0).start()
                         
                 elif (event == '-CAMSTREAM-') and (self.webcam_frames_grabber != None):

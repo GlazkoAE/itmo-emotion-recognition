@@ -54,6 +54,31 @@ class WebcamVideoStream:
     def stop(self):
         self.stopped = True
 
+class face_detector:
+    
+    def __init__(self, h=400, w=600):
+        self.net = cv2.dnn.readNetFromCaffe('./res10_300x300_ssd_iter_140000.caffemodel',
+                                        'deploy.prototxt.txt')
+        self.net = cv2.dnn.readNetFromCaffe(configFile, modelFile)
+        self.h, self.w = w, h
+    
+    def __call__(self, frame):
+        return get_face_box(frame)
+
+    def get_face_box(self, frame):
+        self.net.setInput(cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)), 1.0,
+                                                (300, 300), (104.0, 117.0, 123.0)))
+        bboxes = net.forward()
+        for i in range(bboxes.shape[2]):
+            confidence = faces[0, 0, i, 2]
+            if confidence > 0.5:
+                box = faces[0, 0, i, 3:7] * np.array([w, h, w, h])
+                (x, y, x1, y1) = box.astype("int") 
+                crop = img[y:y1, x:x1]
+                return ((x,y,x1,y1), crop)
+            #cv2.rectangle(img, (x, y), (x1, y1), (0, 0, 255), 2)
+        
+    
 class ModelPathes(NamedTuple):
     cuda_model_path: str
     cpu_model_path: str

@@ -1,7 +1,7 @@
 ---
 pathes:
   ###   [cuda, cpu]
-  face: ['/home/mangaboba/environ/ResnetRUL_cuda.pth',
+  face: ['../models/face/ResnetRUL_cuda.pth',
          '../models/face/classifier_cpu.pth']
          
   hand: ['../models/hand/somemodel_cuda.pth',

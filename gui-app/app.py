@@ -13,7 +13,10 @@ class App:
         self.fps = FPS()
         self.face_detector = face_detector()
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.models = None # self.__set_models()
+        self.models = self.__set_models()
+        # processing frames resolution
+        self.w = None 
+        self.w = None
 
     def settings_window(self):
         """
@@ -28,12 +31,12 @@ class App:
             
         """
         return Models(
-            *[ModelWrap(
+            {model_purpose: ModelWrap(
                  ModelPathes(
                      *self.config['pathes'][model_purpose]), 
-                     self.device
+                     self.device, model_purpose
                             )
-            for model_purpose in ('face', 'hand', 'voice')])
+            for model_purpose in ('face', 'hand', 'voice')})
 
     def make_main_window(self):
         layout = [
@@ -56,6 +59,7 @@ class App:
 
     def run(self):
         try:
+            face_emotion = '' # temp
             while True: # Event Loop
                 window, event, values = sg.read_all_windows(timeout = 1)
                 
@@ -65,10 +69,13 @@ class App:
                     # some frame processing
                     # processed_frame = self.models['hand_model'](frame) -> np.array
                     processed_frame = frame 
-                    self.face_detector(frame)
+                    face_data = self.face_detector(frame, True) # -> ((x,x1,y,y1), crop)
+                    if face_data != None:
+                        face_emotion = self.models['face'](face_data[1])
+                    
                     imgbytes = cv2.imencode('.png',processed_frame)[1].tobytes()
                     self.window1['-IMAGE-'].update(data = imgbytes)
-                    self.window1['-TEXT-'].update(value=int(self.fps.fps()))               
+                    self.window1['-TEXT-'].update(value=f'Fps: {int(self.fps.fps())}, emotion: {face_emotion}')               
                         
                 if event == '-SOMEEVENT-' and not self.window2:
                     self.window2 = make_win2()
@@ -78,7 +85,9 @@ class App:
         
                 elif (event == '-CAMSTREAM-') and (values['-IN-'] == '') and \
                      (self.webcam_frames_grabber == None):
-                    self.webcam_frames_grabber = WebcamVideoStream(src=0).start()
+                    self.webcam_frames_grabber, (self.w, self.h) = \
+                                WebcamVideoStream(src=0).start()
+                    self.face_detector.set_wh(self.w, self.h)
                         
                 elif (event == '-CAMSTREAM-') and (self.webcam_frames_grabber != None):
                     self.webcam_frames_grabber.stop()

@@ -1,26 +1,23 @@
-import torch
 import torchvision
 import torchvision.transforms as transforms
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 import model
 
 if __name__ == '__main__':
 
-    img_size=64
+    img_size = 64
     transform = transforms.Compose(
-        [transforms.Resize((img_size,img_size)),
+        [transforms.Resize((img_size, img_size)),
             transforms.ToTensor(),
          transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-    training_set=torchvision.datasets.ImageFolder(root='data_with_train_test/train/',transform=transform)
-
+    training_set = torchvision.datasets.ImageFolder(root='data_with_train_test/train/', transform=transform)
 
     training_loader = torch.utils.data.DataLoader(training_set, batch_size=4, shuffle=True, num_workers=2)
 
-    classes = ('angry','disgust','fearful','happy','neutral_calm','sad','surprised')
+    classes = ('angry', 'disgust', 'fearful', 'happy', 'neutral_calm', 'sad', 'surprised')
 
     net = model.Net()
     criterion = nn.CrossEntropyLoss()
@@ -49,3 +46,20 @@ if __name__ == '__main__':
     print('Finished Training')
     PATH = './my_net.pth'
     torch.save(net.state_dict(), PATH)
+
+    net.eval()
+    net.to("cpu")
+    dummy_input = torch.randn(1, 3, 64, 64)
+    input_names = ["actual_input"]
+    output_names = ["output"]
+    torch.onnx.export(net,
+                      dummy_input,
+                      "SER.onnx",
+                      verbose=False,
+                      input_names=input_names,
+                      output_names=output_names,
+                      export_params=True,
+                      do_constant_folding=True,
+                      opset_version=11
+                      )
+

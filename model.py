@@ -1,10 +1,5 @@
-import torch
-import torchvision
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-import torch.utils.data
 
 
 class Net(nn.Module):
@@ -20,7 +15,6 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.pool(F.relu(self.conv1(x)))
         x = self.pool(F.relu(self.conv2(x)))
-        #print(x.shape)
         x = x.view((-1, 16*13*13))
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))

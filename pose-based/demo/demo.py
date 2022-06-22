@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import cv2
@@ -5,9 +6,9 @@ import cv2
 from inferense import ArousalModel
 
 
-def __draw_label(img, text, pos, bg_color):
+def draw_label(img, text, pos, bg_color):
     font_face = cv2.FONT_HERSHEY_SIMPLEX
-    scale = 2
+    scale = 1.5
     color = (0, 0, 0)
     thickness = cv2.FILLED
     margin = 2
@@ -20,17 +21,15 @@ def __draw_label(img, text, pos, bg_color):
     cv2.putText(img, text, pos, font_face, scale, color, 1, cv2.LINE_AA)
 
 
-def main():
-    model_path = "lstm-features.005-0.036.hdf5"
+def main(inputs):
+    model_path = inputs.weights
     frames = 30
+
+    video = inputs.video
+
     model = ArousalModel(seq_length=frames, saved_model=model_path)
 
-    video = "demo_1.mp4"
-    out_video = "demo_1_out.mp4"
-    video_path = os.path.join("demo_videos", video)
-    out_video_path = os.path.join("demo_videos", out_video)
-
-    vid_capture = cv2.VideoCapture(video_path)
+    vid_capture = cv2.VideoCapture(video)
 
     if vid_capture.isOpened():
         fps = int(vid_capture.get(5))
@@ -39,7 +38,7 @@ def main():
         print("Frame count : ", frame_count)
         height = vid_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
         width = vid_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-        frameSize = (width, height)
+        # frameSize = (width, height)
     else:
         print("Error opening the video file")
 
@@ -50,9 +49,9 @@ def main():
         ret, frame = vid_capture.read()
         if ret:
             prediction = model.predict(frame)
-            text = str(prediction)
-            __draw_label(frame, text, (20, 50), (255, 255, 255))
-            cv2.imshow("Frame", frame)
+            text = "Arousal: " + str(prediction)
+            draw_label(frame, text, (20, 50), (255, 255, 255))
+            cv2.imshow("Demo (press 'q' to exit)", frame)
 
             # out.write(frame)
 
@@ -69,4 +68,18 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(
+        description="Demo for human arousal prediction model"
+    )
+    parser.add_argument(
+        "--weights",
+        type=str,
+        default="best-lstm.hdf5",
+        help="saved weights of trained model",
+    )
+    parser.add_argument(
+        "--video", type=str, default="demo_videos/demo_1.mp4", help="video path"
+    )
+    args = parser.parse_args()
+
+    main(args)

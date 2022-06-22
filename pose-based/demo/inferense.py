@@ -1,8 +1,8 @@
 import numpy as np
 from tensorflow.keras.models import Sequential, load_model
 
+from detector.detector import crop_human
 from extractor import Extractor
-from HumanDetector.detector import crop_human
 
 
 class ArousalModel:

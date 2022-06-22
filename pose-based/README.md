@@ -22,10 +22,12 @@ file in `data/sequences`.
 It will train LSTM model with features extracted on previous step.
 
 
-### Metrics (soon)
-Mean squared error (MSE):
-Mean squared logarithmic error (MSLE):
-Mean absolute error (MAE):
+### Metrics
+Mean squared error (MSE): 0.036
+
+Mean squared logarithmic error (MSLE): 0.0186
+
+Mean absolute error (MAE): 0.158
 
 
 ## Demo

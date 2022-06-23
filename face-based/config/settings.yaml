@@ -1,0 +1,21 @@
+RUN_CONFIG:
+
+  data:
+    img_size: 128
+    random_state: 3333
+    batch_size: 64
+    workers: 0
+    dataset_path: '/home/mangaboba/environ/fer/datasets/rafdb'
+    
+  model:
+    # if you want to tune pretrained, specify the path to the model ckpt
+    # else set it ''
+    ckpt_path: ''
+    model_version: 'MobileRUL'
+
+  train:
+    learning_rate: 0.00001
+    gpus: 1
+    max_epochs: 60
+    max_steps: -1
+    ckpt_dir: 'ckpts/'

@@ -1,0 +1,6 @@
+__pycache__/
+sweep.yaml
+backbone_weights/
+ckpts/
+wandb/
+.ipynb_chekpoints/

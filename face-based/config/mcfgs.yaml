@@ -1,0 +1,11 @@
+---
+# Configurations of models provided in baseline/models.py
+# Set same model name in settings.yaml : RUN_CONFIG.model.model_version to use.
+MODEL_CONFIGS:
+  #model names
+  MobileRUL:
+      dropout: 0.3
+
+  EffB1:
+    
+    

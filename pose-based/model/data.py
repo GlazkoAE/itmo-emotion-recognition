@@ -230,3 +230,15 @@ class DataSet:
 
         # Cut off the last one if needed.
         return output[:size]
+
+    @staticmethod
+    def list_split(input_list, length):
+        frames_num = len(input_list)
+        input_list = input_list[:frames_num - frames_num % length]
+        for x in range(0, len(input_list), length):
+            every_chunk = input_list[x: length + x]
+
+            if len(every_chunk) < length:
+                every_chunk = every_chunk + \
+                              [None for y in range(length - len(every_chunk))]
+            yield every_chunk

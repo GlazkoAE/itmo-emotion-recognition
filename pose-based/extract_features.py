@@ -44,26 +44,30 @@ def main(inputs):
         )  # numpy will auto-append .npy
 
         # Check if we already have it.
-        if os.path.isfile(path + ".npy"):
+        if os.path.isfile(path + "0.npy"):
             pbar.update(1)
-            continue
+        else:
+            # Get the frames for this video.
+            frames = data.get_frames_for_sample(video)
 
-        # Get the frames for this video.
-        frames = data.get_frames_for_sample(video)
+            # Now downsample to just the ones we need.
+            # frames = data.rescale_list(frames, seq_length)
+            frames = list(data.list_split(frames, seq_length))
 
-        # Now downsample to just the ones we need.
-        frames = data.rescale_list(frames, seq_length)
+            # Now loop through and extract features to build the sequence.
+            pbar_single_video = tqdm(total=len(frames))
+            sequence = []
+            for num, frames_seq_length in enumerate(frames):
+                for image in frames_seq_length:
+                    features = model.extract_from_path(image)
+                    sequence.append(features)
 
-        # Now loop through and extract features to build the sequence.
-        sequence = []
-        for image in frames:
-            features = model.extract_from_path(image)
-            sequence.append(features)
+                # Save the sequence.
+                np.save(path + str(num), sequence)
+                pbar_single_video.update(1)
 
-        # Save the sequence.
-        np.save(path, sequence)
-
-        pbar.update(1)
+            pbar_single_video.close()
+            pbar.update(1)
 
     pbar.close()
 
@@ -83,7 +87,7 @@ if __name__ == "__main__":
         "--saved_model",
         type=str,
         default=None,
-        help="path to saved model for continue train it",
+        help="path to saved extractor model",
     )
 
     args = parser.parse_args()

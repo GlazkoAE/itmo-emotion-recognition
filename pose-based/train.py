@@ -14,7 +14,6 @@ from model.models import ResearchModels
 
 
 def train(seq_length, saved_model=None, batch_size=32, nb_epoch=100, early_stop=10):
-
     model = "lstm"
     data_type = "features"
 
@@ -53,7 +52,11 @@ def train(seq_length, saved_model=None, batch_size=32, nb_epoch=100, early_stop=
     steps_per_epoch = (len(data.data) * 0.7) // batch_size
 
     # Get the model.
-    rm = ResearchModels(1, model, seq_length, saved_model)
+    rm = ResearchModels(
+        model=model,
+        seq_length=seq_length,
+        saved_model=saved_model
+    )
 
     # Get generators.
     generator = data.frame_generator(batch_size, "train", data_type)
@@ -91,7 +94,7 @@ def main(inputs):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Train the lstm model for regression task with features "
-        "extracted with extract_features.py"
+                    "extracted with extract_features.py"
     )
     parser.add_argument(
         "--seq_length",

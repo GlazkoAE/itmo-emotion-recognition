@@ -13,11 +13,10 @@ from keras.optimizers import Adam
 
 class ResearchModels:
     def __init__(
-        self, nb_classes, model, seq_length, saved_model=None, features_length=2048
+        self, model, seq_length, saved_model=None, features_length=2048
     ):
         """
         `model` = only 'lstm' this moment
-        `nb_classes` = the number of classes to predict
         `seq_length` = the length of our video sequences
         `saved_model` = the path to a saved Keras model to load
         """
@@ -26,7 +25,6 @@ class ResearchModels:
         self.seq_length = seq_length
         self.load_model = load_model
         self.saved_model = saved_model
-        self.nb_classes = nb_classes
         self.feature_queue = deque()
 
         # Set the metrics
@@ -45,7 +43,7 @@ class ResearchModels:
             sys.exit()
 
         # Now compile the network.
-        optimizer = Adam(lr=1e-5, decay=1e-6)
+        optimizer = Adam(learning_rate=1e-6, decay=1e-6)
         self.model.compile(
             loss=MeanSquaredError(), optimizer=optimizer, metrics=metrics
         )
@@ -66,6 +64,6 @@ class ResearchModels:
         model.add(Dropout(0.5))
 
         # for linear regression
-        model.add(Dense(1, activation="linear"))
+        model.add(Dense(1, activation="sigmoid"))
 
         return model

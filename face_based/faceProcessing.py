@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 import torch
@@ -32,6 +34,7 @@ class FaceDetector:
                     face_crop = frame[y:y1, x:x1]
                     if draw_bbox:
                         cv2.rectangle(frame, (x, y), (x1, y1), (0, 0, 255), 2)
+
                 else:
                     face_crop = None
 
@@ -90,9 +93,12 @@ class EmotionDetector:
         self,
         inp_img_w: int,
         inp_img_h: int,
-        configFile: str = "./pretrained/deploy.prototxt",
-        modelFile: str = "./pretrained/res10_300x300_ssd_iter_140000.caffemodel",
-        jit_pth: str = "./pretrained/ResnetRUL_cuda.pth",
+        configFile: str = str(Path(__file__).parent / "./pretrained/deploy.prototxt"),
+        modelFile: str = str(
+            Path(__file__).parent
+            / "./pretrained/res10_300x300_ssd_iter_140000.caffemodel"
+        ),
+        jit_pth: str = str(Path(__file__).parent / "./pretrained/ResnetRUL_cuda.pth"),
         inp_size: int = 224,
         draw_face_bbox=False,
     ):
@@ -107,6 +113,9 @@ class EmotionDetector:
 
     def disable_face_bbox(self):
         self._draw_face_bbox = False
+
+    def change_input_size(self, w: int, h: int):
+        self._face_detector.set_wh(w, h)
 
     def __call__(self, frame: np.array) -> str:
         return self._emotion_predictor(self._face_detector(frame, self._draw_face_bbox))

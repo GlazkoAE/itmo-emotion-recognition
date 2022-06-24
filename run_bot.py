@@ -5,6 +5,7 @@ import argparse
 from service.image_loader import ImageTransformer
 from face.inference import Model as FaceModel
 from pose.model.inferense import ArousalModel
+from voice.run_model import ModelResnetForAudio
 from service.drawer import Drawer
 
 if __name__ == "__main__":
@@ -19,8 +20,11 @@ if __name__ == "__main__":
     bot = telebot.TeleBot(args.key, parse_mode=None)
     image_loader = ImageTransformer()
     face_model = FaceModel()
+    voice_model = ModelResnetForAudio()
     pose_model = ArousalModel(saved_model='./pose/best-lstm.hdf5')
     drawer = Drawer()
+    #voice_prediction = voice_model.predict('voice')
+
 
 
     @bot.message_handler(content_types=["text"])
@@ -48,6 +52,7 @@ if __name__ == "__main__":
             prediction, box = face_model.predict(image)
 
             # Send message
+
             if prediction is not None:
                 text = "This person looks like " + prediction
             else:
@@ -97,9 +102,14 @@ if __name__ == "__main__":
                 if ret:
                     pose_prediction = pose_model.predict(frame)
                     face_prediction, box = face_model.predict(frame)
+
+                    voice_prediction = voice_model.predict(output_file_name)
+                    #print(voice_prediction)
+
                     frame = drawer.draw_face_box(frame, box)
                     frame = drawer.draw_face_predict(frame, face_prediction)
                     frame = drawer.draw_pose_predict(frame, pose_prediction)
+                    frame=drawer.draw_voice_predict(frame,voice_prediction)
                     writer.write(frame)
                 else:
                     bot.reply_to(message, "Can't process video")

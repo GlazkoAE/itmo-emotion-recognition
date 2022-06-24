@@ -1,0 +1,14 @@
+---
+# These parameters should not affect the result of training the model
+SYS_CONFIG:
+
+  system: 
+    num_workers: 0
+    #device: 'cuda:0' # gpu/cuda:n
+    
+  logs_cgf:
+    WANDB_DISABLED: true
+    wandb_project: 'FER'
+    wandb_entity: 'mangaboba'
+    run_name: 'effb0'
+    wandb_api_key: ''

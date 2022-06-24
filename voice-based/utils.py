@@ -3,14 +3,14 @@ import torch
 import torch.utils.data
 import glob
 import librosa
-import os
 import skimage.io
 import numpy as np
 import shutil
-from pydub.silence import split_on_silence
 from pydub import AudioSegment
 from moviepy.editor import *
-import warnings
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 
@@ -136,17 +136,18 @@ def from_audio_to_image(path_audio):
 
 
 
-def accuracy_for_each_class(validation_loader, net, classes):
+def metric_for_each_class(validation_loader, model, classes):
     class_correct = list(0. for i in range(7))
     class_total = list(0. for i in range(7))
     y_true = []
     y_pred = []
+    model.eval()
     with torch.no_grad():
         for data in validation_loader:
             images, labels = data
 
             y_true.append(labels.cpu().detach().numpy())
-            outputs = net(images)
+            outputs = model(images)
             _, predicted = torch.max(outputs, 1)
             y_pred.append(predicted.cpu().detach().numpy())
             c = (predicted == labels).squeeze(0)
@@ -163,3 +164,30 @@ def accuracy_for_each_class(validation_loader, net, classes):
     for i in range(len(classes)):
         print('Accuracy of %5s : %2d %%' % (
             classes[i], 100 * class_correct[i] / class_total[i]))
+    cf_matrix(y_true,y_pred,classes)
+
+
+def cf_matrix(y_true,y_pred,classes):
+    array_y_pred = []
+    for el in y_pred:
+        for i in el:
+            array_y_pred.append(i)
+    array_y_true = []
+    for el in y_true:
+        for i in el:
+            array_y_true.append(i)
+    cf_matrix = confusion_matrix(array_y_true, array_y_pred)
+    plt.figure(figsize=(10, 10))
+    ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+
+    # drawing the plot
+    ax.set_title('Seaborn Confusion Matrix with labels\n\n');
+    ax.set_xlabel('\nPredicted Values')
+    ax.set_ylabel('Actual Values ');
+
+    ## Ticket labels - List must be in alphabetical order
+    ax.xaxis.set_ticklabels(classes)
+    ax.yaxis.set_ticklabels(classes)
+
+    ## Display the visualization of the Confusion Matrix.
+    plt.show()

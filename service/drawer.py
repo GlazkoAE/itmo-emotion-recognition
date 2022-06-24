@@ -109,8 +109,8 @@ class Drawer:
 
     def _get_rectangle_pos(self, pos, text):
         txt_size = cv2.getTextSize(text, self.font, self.scale, self.thickness)
-        end_x = pos[0] + txt_size[0][0] + self.margin * 2
-        end_y = pos[1] - txt_size[0][1] - self.margin * 2
+        end_x = pos[0] + txt_size[0][0] + self.margin
+        end_y = pos[1] - txt_size[0][1] - self.margin
         return end_x, end_y
 
     @staticmethod

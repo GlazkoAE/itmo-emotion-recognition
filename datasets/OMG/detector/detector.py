@@ -1,14 +1,13 @@
-from torchvision.models import detection
+import cv2
 import numpy as np
 import torch
-import cv2
+from torchvision.models import detection
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-model = detection.retinanet_resnet50_fpn(pretrained=True,
-                                         progress=False,
-                                         num_classes=91,
-                                         pretrained_backbone=True).to(DEVICE)
+model = detection.retinanet_resnet50_fpn(
+    pretrained=True, progress=False, num_classes=91, pretrained_backbone=True
+).to(DEVICE)
 
 model.eval()
 
@@ -23,7 +22,7 @@ def crop_human(image):
 
 def crop_box(image, box):
     (start_x, start_y, end_x, end_y) = box.astype("int")
-    image = image[start_y: end_y, start_x: end_x]
+    image = image[start_y:end_y, start_x:end_x]
     return image
 
 

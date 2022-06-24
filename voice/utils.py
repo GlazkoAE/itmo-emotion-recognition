@@ -1,25 +1,28 @@
-import torchvision.transforms as transforms
-import torch
-import torch.utils.data
 import glob
-import librosa
-import skimage.io
-import numpy as np
 import shutil
-from pydub import AudioSegment
-from moviepy.editor import *
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
 from collections import Counter
 
+import librosa
+import matplotlib.pyplot as plt
+import numpy as np
+import seaborn as sns
+import skimage.io
+import torch
+import torch.utils.data
+import torchvision.transforms as transforms
+from moviepy.editor import *
+from pydub import AudioSegment
+from sklearn.metrics import confusion_matrix
 
 
 def get_transforms(img_size):
     transform = transforms.Compose(
-        [transforms.Resize((img_size, img_size)),
-         transforms.ToTensor(),
-         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        [
+            transforms.Resize((img_size, img_size)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
     return transform
 
 
@@ -31,19 +34,23 @@ def scale_minmax(X, min=0.0, max=1.0):
 
 def spectrogram_image(y, sr, out, n_mels):
     # use log-melspectrogram
-    mels = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=n_mels,)
+    mels = librosa.feature.melspectrogram(
+        y=y,
+        sr=sr,
+        n_mels=n_mels,
+    )
     mels = np.log(mels + 1e-9)  # add small number to avoid log(0)
 
     # min-max scale to fit inside 8-bit range
     img = scale_minmax(mels, 0, 255).astype(np.uint8)
     img = np.flip(img, axis=0)  # put low frequencies at the bottom in image
-    img = 255-img  # invert. make black==more energy
+    img = 255 - img  # invert. make black==more energy
 
     # save as PNG
     skimage.io.imsave(out, img)
 
 
-def overall_accuracy(validation_loader,net):
+def overall_accuracy(validation_loader, net):
     correct = 0
     total = 0
     with torch.no_grad():
@@ -54,100 +61,103 @@ def overall_accuracy(validation_loader,net):
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-    print('Accuracy of the network: %d %%' % (100 * correct / total))
+    print("Accuracy of the network: %d %%" % (100 * correct / total))
 
 
-def get_predict(validation_loader,model,classes):
+def get_predict(validation_loader, model, classes):
     model.eval()
-    full_predicted=[]
+    full_predicted = []
     with torch.no_grad():
         for data in validation_loader:
             images, labels = data
-            #print(images.shape,'    g',labels)
+            # print(images.shape,'    g',labels)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             for el in predicted:
                 full_predicted.append(classes[el])
-    #print(full_predicted)
+    # print(full_predicted)
     c = Counter(full_predicted)
-    stats=dict(c)
-    predict=max(stats, key=stats.get)
+    stats = dict(c)
+    predict = max(stats, key=stats.get)
     return predict
 
 
 def from_video_to_audio(video_name):
 
-    os.mkdir('voice/audio_from_video')
-    os.mkdir('voice/img_data')
-    os.mkdir(f'voice/img_data/img')
-    #video_path = 'voice'
-    #video_path = video_name+'*.mp4'
-    #print(video_name,"  1")
-    #print(glob.glob(video_path)," ddd")
+    if not os.path.exists("voice/audio_from_video"):
+        os.mkdir("voice/audio_from_video")
+    if not os.path.exists("voice/img_data"):
+        os.mkdir("voice/img_data")
+    if not os.path.exists("voice/img_data/img"):
+        os.mkdir("voice/img_data/img")
+    # video_path = 'voice'
+    # video_path = video_name+'*.mp4'
+    # print(video_name,"  1")
+    # print(glob.glob(video_path)," ddd")
     for file in glob.glob(video_name):
         basename = os.path.basename(file)
-        #print(file,"  2")
+        # print(file,"  2")
 
-        target_path = "voice/audio_from_video/%s.wav" % video_name.split('.')[0]
-        #print(target_path,"  3")
+        target_path = "voice/audio_from_video/%s.wav" % video_name.split(".")[0]
+        # print(target_path,"  3")
         video = VideoFileClip(video_name)
         video.audio.write_audiofile(target_path)
 
         newAudio = AudioSegment.from_file(target_path)
-        step=3*1000
-        #print(step)
+        step = 3 * 1000
+        # print(step)
         t1 = 0
         t2 = step
-        temp_path=target_path.split('/')
-        col=int((len(newAudio) / step))
-        #print(col)
+        temp_path = target_path.split("/")
+        col = int((len(newAudio) / step))
+        # print(col)
 
-        for i,j in enumerate(range(col)):
+        for i, j in enumerate(range(col)):
 
-            #print(t1,t2)
+            # print(t1,t2)
             temp_audio = newAudio[t1:t2]
-            temp_audio.export(f'{temp_path[0]}/{temp_path[1]}/{temp_path[2].replace(".","")}{i}.wav', format="wav")
-            t1 = t1+step
-            t2 = t2+step
-        newAudio.export(f'{target_path}', format="wav")
+            temp_audio.export(
+                f'{temp_path[0]}/{temp_path[1]}/{temp_path[2].replace(".","")}{i}.wav',
+                format="wav",
+            )
+            t1 = t1 + step
+            t2 = t2 + step
+        newAudio.export(f"{target_path}", format="wav")
         os.remove(target_path)
-        target_path=temp_path[0]+'/'+temp_path[1]+'/*.wav'
+        target_path = temp_path[0] + "/" + temp_path[1] + "/*.wav"
 
-
-        #print(target_path,' VBVVVV')
-        base_folder=from_audio_to_image(target_path)
-    shutil.rmtree('voice/audio_from_video')
+        # print(target_path,' VBVVVV')
+        base_folder = from_audio_to_image(target_path)
+    shutil.rmtree("voice/audio_from_video")
     return base_folder
 
 
 def from_audio_to_image(path_audio):
     n_mels = 128
-    base_folder='voice/img_data/'
-    #print(path_audio," RRRRR")
+    base_folder = "voice/img_data/"
+    # print(path_audio," RRRRR")
     for files in glob.glob(path_audio):
         basename = os.path.basename(files)
-        #print(basename," AAA")
-        basename=basename.split('.')[0]
-        #print(basename," BBB")
-        basename=basename.replace('wav', '_')
-        #print(basename," EEE")
+        # print(basename," AAA")
+        basename = basename.split(".")[0]
+        # print(basename," BBB")
+        basename = basename.replace("wav", "_")
+        # print(basename," EEE")
         #
-        #print(files," AAAAA")
+        # print(files," AAAAA")
         x, sr = librosa.load(files, mono=True, sr=22050)
-       #
-        #os.mkdir(f'img_data/img')
-        #basename = basename.split('.')[0]
-        out = f'voice/img_data/img/{basename}.png'
-        #print(out)
+        #
+        # os.mkdir(f'img_data/img')
+        # basename = basename.split('.')[0]
+        out = f"voice/img_data/img/{basename}.png"
+        # print(out)
         spectrogram_image(x, sr=sr, out=out, n_mels=n_mels)
     return base_folder
 
 
-
-
 def metric_for_each_class(validation_loader, model, classes):
-    class_correct = list(0. for i in range(7))
-    class_total = list(0. for i in range(7))
+    class_correct = list(0.0 for i in range(7))
+    class_total = list(0.0 for i in range(7))
     y_true = []
     y_pred = []
     model.eval()
@@ -171,12 +181,14 @@ def metric_for_each_class(validation_loader, model, classes):
                 class_total[label] += 1
 
     for i in range(len(classes)):
-        print('Accuracy of %5s : %2d %%' % (
-            classes[i], 100 * class_correct[i] / class_total[i]))
-    cf_matrix(y_true,y_pred,classes)
+        print(
+            "Accuracy of %5s : %2d %%"
+            % (classes[i], 100 * class_correct[i] / class_total[i])
+        )
+    cf_matrix(y_true, y_pred, classes)
 
 
-def cf_matrix(y_true,y_pred,classes):
+def cf_matrix(y_true, y_pred, classes):
     array_y_pred = []
     for el in y_pred:
         for i in el:
@@ -187,12 +199,12 @@ def cf_matrix(y_true,y_pred,classes):
             array_y_true.append(i)
     cf_matrix = confusion_matrix(array_y_true, array_y_pred)
     plt.figure(figsize=(10, 10))
-    ax = sns.heatmap(cf_matrix, annot=True, cmap='Blues')
+    ax = sns.heatmap(cf_matrix, annot=True, cmap="Blues")
 
     # drawing the plot
-    ax.set_title('Seaborn Confusion Matrix with labels\n\n');
-    ax.set_xlabel('\nPredicted Values')
-    ax.set_ylabel('Actual Values ');
+    ax.set_title("Seaborn Confusion Matrix with labels\n\n")
+    ax.set_xlabel("\nPredicted Values")
+    ax.set_ylabel("Actual Values ")
 
     ## Ticket labels - List must be in alphabetical order
     ax.xaxis.set_ticklabels(classes)

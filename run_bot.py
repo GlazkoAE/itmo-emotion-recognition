@@ -1,14 +1,14 @@
-import telebot
-import os
-import cv2
 import argparse
+import os
+
+import telebot
 from moviepy.editor import VideoFileClip
-from service.image_loader import ImageTransformer
+
 from face.inference import Model as FaceModel
 from pose.model.inferense import ArousalModel
-from voice.run_model import ModelResnetForAudio
 from service.drawer import Drawer
-
+from service.image_loader import ImageTransformer
+from voice.run_model import ModelResnetForAudio
 
 if __name__ == "__main__":
     # Get telegram bot token from arguments
@@ -23,22 +23,19 @@ if __name__ == "__main__":
     image_loader = ImageTransformer()
     face_model = FaceModel()
     voice_model = ModelResnetForAudio()
-    pose_model = ArousalModel(saved_model='./pose/best-lstm.hdf5')
+    pose_model = ArousalModel(saved_model="./pose/best-lstm.hdf5")
     drawer = Drawer()
-    
+
     @bot.message_handler(content_types=["text"])
     def handle_start(message):  # start message reaction
         if message.text == "/start":
-            bot.send_message(
-                message.from_user.id, "Send me video or photo"
-            )
+            bot.send_message(message.from_user.id, "Send me video or photo")
             bot.register_next_step_handler(message, handle_dock_photo)
         else:
             bot.send_message(
                 message.from_user.id,
                 "Write /start if you want to use bot",
             )
-
 
     @bot.message_handler(content_types=["photo"])
     def handle_dock_photo(message):  # image massage reaction
@@ -49,7 +46,6 @@ if __name__ == "__main__":
 
             image = image_loader.image_as_array(download_file)
             prediction, box = face_model.predict(image)
-
 
             # Send message
 
@@ -68,75 +64,43 @@ if __name__ == "__main__":
         except Exception as e:
             bot.reply_to(message, "Can't load image")
 
-
     @bot.message_handler(content_types=["video"])
     def handle_dock_video(message):
-        try:
-            file_info = bot.get_file(message.video.file_id)
-            download_file = bot.download_file(file_info.file_path)
+        # try:
+        file_info = bot.get_file(message.video.file_id)
+        download_file = bot.download_file(file_info.file_path)
 
-            bot.reply_to(message, "Processing")
+        bot.reply_to(message, "Processing")
 
-            input_file_name = 'input_video' + str(message.chat.id) + '.mp4'
-            output_file_name = 'output_video' + str(message.chat.id) + '.mp4'
+        input_file_name = "input_video" + str(message.chat.id) + ".mp4"
+        output_file_name = "output_video" + str(message.chat.id) + ".mp4"
 
-            if os.path.exists(output_file_name):
-                os.remove(output_file_name)
-
-            if os.path.exists(input_file_name):
-                os.remove(input_file_name)
-
-            # with open(input_file_name, "wb") as input_file:
-            #     input_file.write(download_file)
-            video = VideoFileClip(input_file_name)
-            
-            
-            #print(voice_prediction)
-
-            # vid_capture = cv2.VideoCapture(input_file_name)
-            # w = vid_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-            # h = vid_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-            # fps = vid_capture.get(cv2.CAP_PROP_FPS)
-            # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-            # writer = cv2.VideoWriter(output_file_name, fourcc, int(fps),
-            #                          (int(w), int(h)), True)
-
-            
-### --->>> drawer.frame processor()
-            # for frame_num in range(int(vid_capture.get(cv2.CAP_PROP_FRAME_COUNT))):
-            #     ret, frame = vid_capture.read()
-            #     if ret:
-            #         pose_prediction = pose_model.predict(frame)
-            #         face_prediction, box = face_model.predict(frame)
-            #         frame = drawer.draw_face_box(frame, box)
-            #         frame = drawer.draw_face_predict(frame, face_prediction)
-            #         frame = drawer.draw_pose_predict(frame, pose_prediction)
-            #         frame = drawer.draw_voice_predict(frame,voice_prediction)
-            #         writer.write(frame)
-            #     else:
-            #         bot.reply_to(message, "Can't process video")
-            #         break
-            
-            # set models & foice predict as dreawer members for frame processing fun
-            drawer.set_models(pose_model, voice_model, face_model)
-            
-            # input video processing
-            newclip = video.fl(self.process_frame, apply_to="mask")
-            # save
-            newclip.write_videofile(output_file_name)
-            
-            # vid_capture.release()
-            # writer.release()
-
-            with open(output_file_name, 'rb') as output_file:
-                send_file = output_file.read()
-
-            bot.send_video(message.chat.id, send_file)
+        if os.path.exists(output_file_name):
             os.remove(output_file_name)
+
+        if os.path.exists(input_file_name):
             os.remove(input_file_name)
 
-        except Exception as e:
-            bot.reply_to(message, "Something went wrong")
+        with open(input_file_name, "wb") as input_file:
+            input_file.write(download_file)
+        video = VideoFileClip(input_file_name)
 
+        # set models & foice predict as dreawer members for frame processing fun
+        drawer.set_models(pose_model, face_model, voice_model)
+
+        # input video processing
+        newclip = video.fl(drawer.frame_processor, apply_to="mask")
+        # save
+        newclip.write_videofile(output_file_name)
+
+        with open(output_file_name, "rb") as output_file:
+            send_file = output_file.read()
+
+        bot.send_video(message.chat.id, send_file)
+        os.remove(output_file_name)
+        os.remove(input_file_name)
+
+        # except Exception as e:
+        #     bot.reply_to(message, "Something went wrong")
 
     bot.polling(non_stop=True, interval=0)

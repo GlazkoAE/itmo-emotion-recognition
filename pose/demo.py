@@ -1,7 +1,6 @@
 import argparse
 
 import cv2
-
 from model.inferense import ArousalModel
 
 

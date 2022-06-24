@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import cv2
 import numpy as np
 import torch
@@ -90,9 +92,12 @@ class EmotionDetector:
         self,
         inp_img_w: int,
         inp_img_h: int,
-        configFile: str = "./pretrained/deploy.prototxt",
-        modelFile: str = "./pretrained/res10_300x300_ssd_iter_140000.caffemodel",
-        jit_pth: str = "./pretrained/ResnetRUL_cuda.pth",
+        configFile: str = str(Path(__file__).parent / "./pretrained/deploy.prototxt"),
+        modelFile: str = str(
+            Path(__file__).parent
+            / "./pretrained/res10_300x300_ssd_iter_140000.caffemodel"
+        ),
+        jit_pth: str = str(Path(__file__).parent / "./pretrained/ResnetRUL_cuda.pth"),
         inp_size: int = 224,
         draw_face_bbox=False,
     ):

@@ -1,7 +1,8 @@
-import numpy as np
-import cv2
-import torchvision.transforms as transforms
 from io import BytesIO
+
+import cv2
+import numpy as np
+import torchvision.transforms as transforms
 from PIL import Image
 
 
@@ -19,5 +20,5 @@ class ImageTransformer:
     def image_as_bytes(image: np.array):
         image = Image.fromarray(image)
         img_byte_arr = BytesIO()
-        image.save(img_byte_arr, format='JPEG')
+        image.save(img_byte_arr, format="JPEG")
         return img_byte_arr.getvalue()

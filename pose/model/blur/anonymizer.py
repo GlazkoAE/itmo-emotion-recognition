@@ -1,9 +1,8 @@
 import os
 
 import cv2
-import numpy as np
-
 import model.blur.blur as blur
+import numpy as np
 
 
 class Anonymizer:

@@ -5,10 +5,9 @@ import argparse
 import os.path
 import time
 
+import wandb
 from keras.callbacks import (CSVLogger, EarlyStopping, ModelCheckpoint,
                              TensorBoard)
-
-import wandb
 from model.data import DataSet
 from model.models import ResearchModels
 

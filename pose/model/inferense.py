@@ -1,11 +1,12 @@
 import numpy as np
+from keras.models import load_model
+
 from pose.model.detector.detector import crop_human
 from pose.model.extractor import Extractor
-from keras.models import load_model
 
 
 class ArousalModel:
-    def __init__(self, seq_length=30, saved_model='./best-lstm.hdf5'):
+    def __init__(self, seq_length=30, saved_model="./best-lstm.hdf5"):
         self.seq_length = seq_length
         self.saved_model = saved_model
 

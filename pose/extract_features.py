@@ -15,10 +15,9 @@ import argparse
 import os.path
 
 import numpy as np
-from tqdm import tqdm
-
 from model.data import DataSet
 from model.extractor import Extractor
+from tqdm import tqdm
 
 
 def main(inputs):

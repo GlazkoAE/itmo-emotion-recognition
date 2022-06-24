@@ -13,7 +13,7 @@ import yaml
 from moviepy.editor import VideoFileClip
 from torchvision import transforms
 
-from face_based.faceProcessing import EmotionDetector
+from face.faceProcessing import EmotionDetector
 
 
 def parse_cfg(cfg_path: str) -> dict:

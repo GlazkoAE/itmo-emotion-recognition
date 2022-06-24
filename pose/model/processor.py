@@ -4,7 +4,7 @@ Process an image that we can pass to our networks.
 import cv2
 import numpy as np
 
-from model.blur.anonymizer import Anonymizer
+from pose.model.blur.anonymizer import Anonymizer
 
 anonymizer = Anonymizer(
     method="pixel", confidence=0.5, pixel_blocks=30, gauss_kernel=3, gauss_factor=10

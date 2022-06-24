@@ -1,11 +1,11 @@
 import numpy as np
-from model.detector.detector import crop_human
-from model.extractor import Extractor
+from pose.model.detector.detector import crop_human
+from pose.model.extractor import Extractor
 from keras.models import load_model
 
 
 class ArousalModel:
-    def __init__(self, seq_length=30, saved_model=None):
+    def __init__(self, seq_length=30, saved_model='./best-lstm.hdf5'):
         self.seq_length = seq_length
         self.saved_model = saved_model
 
@@ -18,6 +18,9 @@ class ArousalModel:
 
     def predict(self, image):
         human = crop_human(image, is_rgb=True)
+        if human is None:
+            return None
+
         feature = np.array(self.feature_extractor.extract(img=human))
         feature = np.reshape(feature, (1, 1, feature.shape[0]))
         self.features = np.concatenate((self.features[:, 1:, :], feature), axis=1)

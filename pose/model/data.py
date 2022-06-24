@@ -9,7 +9,7 @@ import threading
 
 import numpy as np
 
-from model.processor import process_image
+from pose.model.processor import process_image
 
 
 class ThreadsafeIterator:

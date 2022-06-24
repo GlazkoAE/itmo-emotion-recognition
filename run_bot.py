@@ -2,11 +2,13 @@ import telebot
 import os
 import cv2
 import argparse
+from moviepy.editor import VideoFileClip
 from service.image_loader import ImageTransformer
 from face.inference import Model as FaceModel
 from pose.model.inferense import ArousalModel
 from voice.run_model import ModelResnetForAudio
 from service.drawer import Drawer
+
 
 if __name__ == "__main__":
     # Get telegram bot token from arguments
@@ -23,8 +25,7 @@ if __name__ == "__main__":
     voice_model = ModelResnetForAudio()
     pose_model = ArousalModel(saved_model='./pose/best-lstm.hdf5')
     drawer = Drawer()
-
-
+    
     @bot.message_handler(content_types=["text"])
     def handle_start(message):  # start message reaction
         if message.text == "/start":
@@ -85,36 +86,47 @@ if __name__ == "__main__":
             if os.path.exists(input_file_name):
                 os.remove(input_file_name)
 
-            with open(input_file_name, "wb") as input_file:
-                input_file.write(download_file)
-
-            voice_prediction = voice_model.predict(input_file_name)
+            # with open(input_file_name, "wb") as input_file:
+            #     input_file.write(download_file)
+            video = VideoFileClip(input_file_name)
+            
+            
             #print(voice_prediction)
 
-            vid_capture = cv2.VideoCapture(input_file_name)
-            w = vid_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
-            h = vid_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
-            fps = vid_capture.get(cv2.CAP_PROP_FPS)
-            fourcc = cv2.VideoWriter_fourcc(*'MP4V')
-            writer = cv2.VideoWriter(output_file_name, fourcc, int(fps),
-                                     (int(w), int(h)), True)
+            # vid_capture = cv2.VideoCapture(input_file_name)
+            # w = vid_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
+            # h = vid_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
+            # fps = vid_capture.get(cv2.CAP_PROP_FPS)
+            # fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+            # writer = cv2.VideoWriter(output_file_name, fourcc, int(fps),
+            #                          (int(w), int(h)), True)
 
-            for frame_num in range(int(vid_capture.get(cv2.CAP_PROP_FRAME_COUNT))):
-                ret, frame = vid_capture.read()
-                if ret:
-                    pose_prediction = pose_model.predict(frame)
-                    face_prediction, box = face_model.predict(frame)
-                    frame = drawer.draw_face_box(frame, box)
-                    frame = drawer.draw_face_predict(frame, face_prediction)
-                    frame = drawer.draw_pose_predict(frame, pose_prediction)
-                    frame=drawer.draw_voice_predict(frame,voice_prediction)
-                    writer.write(frame)
-                else:
-                    bot.reply_to(message, "Can't process video")
-                    break
-
-            vid_capture.release()
-            writer.release()
+            
+### --->>> drawer.frame processor()
+            # for frame_num in range(int(vid_capture.get(cv2.CAP_PROP_FRAME_COUNT))):
+            #     ret, frame = vid_capture.read()
+            #     if ret:
+            #         pose_prediction = pose_model.predict(frame)
+            #         face_prediction, box = face_model.predict(frame)
+            #         frame = drawer.draw_face_box(frame, box)
+            #         frame = drawer.draw_face_predict(frame, face_prediction)
+            #         frame = drawer.draw_pose_predict(frame, pose_prediction)
+            #         frame = drawer.draw_voice_predict(frame,voice_prediction)
+            #         writer.write(frame)
+            #     else:
+            #         bot.reply_to(message, "Can't process video")
+            #         break
+            
+            # set models & foice predict as dreawer members for frame processing fun
+            drawer.set_models(pose_model, voice_model, face_model)
+            
+            # input video processing
+            newclip = video.fl(self.process_frame, apply_to="mask")
+            # save
+            newclip.write_videofile(output_file_name)
+            
+            # vid_capture.release()
+            # writer.release()
 
             with open(output_file_name, 'rb') as output_file:
                 send_file = output_file.read()

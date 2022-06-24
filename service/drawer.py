@@ -36,11 +36,11 @@ class Drawer:
 
         pose_prediction = self.models["pose_model"].predict(frame)
         face_prediction, box = self.models["face_model"].predict(frame)
-        # voice_prediction = self.models['voice_prediction']
+        voice_prediction = self.models['voice_prediction']
         frame = self.draw_face_box(frame, box)
         frame = self.draw_face_predict(frame, face_prediction)
         frame = self.draw_pose_predict(frame, pose_prediction)
-        # frame = self.draw_voice_predict(frame, voice_prediction)
+        frame = self.draw_voice_predict(frame, voice_prediction)
 
         return frame
 
@@ -69,7 +69,7 @@ class Drawer:
 
     def draw_pose_predict(self, image, predict):
         text = (
-            "Person was not founded" if predict is None else "Arousal: " + str(predict)
+            "Person was not founded" if predict is None else "Arousal: " + str(predict)[:6]
         )
         rectangle_pos = self._get_rectangle_pos(self.pose_pos, text)
         cv2.rectangle(
@@ -109,8 +109,8 @@ class Drawer:
 
     def _get_rectangle_pos(self, pos, text):
         txt_size = cv2.getTextSize(text, self.font, self.scale, self.thickness)
-        end_x = pos[0] + txt_size[0][0] + self.margin
-        end_y = pos[1] - txt_size[0][1] - self.margin
+        end_x = pos[0] + txt_size[0][0] + self.margin * 2
+        end_y = pos[1] - txt_size[0][1] - self.margin * 2
         return end_x, end_y
 
     @staticmethod

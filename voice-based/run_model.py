@@ -6,14 +6,15 @@ import utils
 
 class ModelResnetForAudio:
 
-    def __init__(self,path_to_weights):
-        self.path_to_weights=path_to_weights
+    def __init__(self,):
+        pass
 
-    def run(self, path_video):
+    def predict(self, path_video='./voice-based/video'):
 
         classes = ('angry', 'disgust', 'fearful', 'happy', 'neutral_calm', 'sad', 'surprised')
         num_classes = len(classes)
-        #path_to_weights = './my_net_only_all_dataset_resnet_50_pretrained.pth'
+        path_to_weights = './voice-based/my_net_only_all_dataset_resnet_50_pretrained.pth'
+        #path_video = './voice-based/video'
 
         img_size = 64
         transform = utils.get_transforms(img_size)
@@ -27,7 +28,7 @@ class ModelResnetForAudio:
         model = torchvision.models.resnet50(pretrained=False)
         in_features = model.fc.in_features
         model.fc = torch.nn.Linear(in_features, num_classes)
-        model.load_state_dict(torch.load(self.path_to_weights))
+        model.load_state_dict(torch.load(path_to_weights))
 
         # utils.overall_accuracy(validation_loader, model)  # выводит общую точность
         # utils.accuracy_for_each_class(validation_loader, model, classes)  # выводит точность по классам

@@ -1,0 +1,6 @@
+torchvision==0.12.0
+torch==1.11.0
+librosa==0.9.1
+scikit-image==0.19.3
+pydub==0.25.1
+moviepy==1.0.3

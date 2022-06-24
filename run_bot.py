@@ -23,8 +23,6 @@ if __name__ == "__main__":
     voice_model = ModelResnetForAudio()
     pose_model = ArousalModel(saved_model='./pose/best-lstm.hdf5')
     drawer = Drawer()
-    #voice_prediction = voice_model.predict('voice')
-
 
 
     @bot.message_handler(content_types=["text"])
@@ -50,6 +48,7 @@ if __name__ == "__main__":
 
             image = image_loader.image_as_array(download_file)
             prediction, box = face_model.predict(image)
+
 
             # Send message
 
@@ -89,6 +88,9 @@ if __name__ == "__main__":
             with open(input_file_name, "wb") as input_file:
                 input_file.write(download_file)
 
+            voice_prediction = voice_model.predict(input_file_name)
+            #print(voice_prediction)
+
             vid_capture = cv2.VideoCapture(input_file_name)
             w = vid_capture.get(cv2.CAP_PROP_FRAME_WIDTH)
             h = vid_capture.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -102,10 +104,6 @@ if __name__ == "__main__":
                 if ret:
                     pose_prediction = pose_model.predict(frame)
                     face_prediction, box = face_model.predict(frame)
-
-                    voice_prediction = voice_model.predict(output_file_name)
-                    #print(voice_prediction)
-
                     frame = drawer.draw_face_box(frame, box)
                     frame = drawer.draw_face_predict(frame, face_prediction)
                     frame = drawer.draw_pose_predict(frame, pose_prediction)

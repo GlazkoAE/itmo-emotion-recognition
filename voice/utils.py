@@ -11,6 +11,7 @@ from moviepy.editor import *
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
 import matplotlib.pyplot as plt
+from collections import Counter
 
 
 
@@ -67,24 +68,29 @@ def get_predict(validation_loader,model,classes):
             _, predicted = torch.max(outputs.data, 1)
             for el in predicted:
                 full_predicted.append(classes[el])
-    return full_predicted
+    #print(full_predicted)
+    c = Counter(full_predicted)
+    stats=dict(c)
+    predict=max(stats, key=stats.get)
+    return predict
 
 
-def from_video_to_audio(video_path):
+def from_video_to_audio(video_name):
 
     os.mkdir('voice/audio_from_video')
     os.mkdir('voice/img_data')
     os.mkdir(f'voice/img_data/img')
-    video_path = video_path+'/*.mp4'
-    #print(video_path)
-    #print(glob.glob('voice/*.mp4')," ddd")
-    for file in glob.glob(video_path):
+    #video_path = 'voice'
+    #video_path = video_name+'*.mp4'
+    #print(video_name,"  1")
+    #print(glob.glob(video_path)," ddd")
+    for file in glob.glob(video_name):
         basename = os.path.basename(file)
-        #print(basename)
+        #print(file,"  2")
 
-        target_path = "voice/audio_from_video/%s.wav" % basename.split('.')[0]
-        #print(target_path)
-        video = VideoFileClip(file)
+        target_path = "voice/audio_from_video/%s.wav" % video_name.split('.')[0]
+        #print(target_path,"  3")
+        video = VideoFileClip(video_name)
         video.audio.write_audiofile(target_path)
 
         newAudio = AudioSegment.from_file(target_path)
@@ -110,7 +116,7 @@ def from_video_to_audio(video_path):
 
         #print(target_path,' VBVVVV')
         base_folder=from_audio_to_image(target_path)
-    #shutil.rmtree('voice/audio_from_video')
+    shutil.rmtree('voice/audio_from_video')
     return base_folder
 
 

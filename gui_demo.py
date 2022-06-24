@@ -1,25 +1,14 @@
-import datetime
-import sys
 import time
-from io import StringIO
 from pathlib import Path
 from threading import Thread
 
 import cv2
-import numpy as np
 import PySimpleGUI as sg
 import torch
 import yaml
 from moviepy.editor import VideoFileClip
-from torchvision import transforms
 
 from face.faceProcessing import EmotionDetector
-
-
-def parse_cfg(cfg_path: str) -> dict:
-    with open(cfg_path, "r") as config_file:
-        app_cfg = yaml.safe_load(config_file)
-    return app_cfg
 
 
 class FPS:
@@ -69,7 +58,6 @@ class App:
     def __init__(self, config=None):
         self.config = config
         self.window1 = self.make_main_window()
-        self.window2 = None
         self.webcam_frames_grabber = None
         self.fps = FPS()
         self.emotion_detector = None
@@ -116,10 +104,6 @@ class App:
             "EmotinRecognitionDemo", layout, location=(800, 600), finalize=True
         )
 
-    def make_win2():
-        layout = [[sg.Text("The second window")], [sg.Button("Exit")]]
-        return sg.Window("Second Window", layout, finalize=True)
-
     def process_frame(self, get_frame, t):
         frame = get_frame(t)
         emotion = self.emotion_detector(frame)
@@ -152,10 +136,7 @@ class App:
                         value=f"Fps: {int(self.fps.fps())}, emotion: {face_emotion}"
                     )
 
-                if event == "-SOMEEVENT-" and not self.window2:
-                    self.window2 = make_win2()
-
-                elif (
+                if (
                     (event == "-PROCESS-")
                     and (values["-IN-"] == "")
                     and (self.webcam_frames_grabber == None)
@@ -205,9 +186,6 @@ class App:
                             self.webcam_frames_grabber = None
                             self.window1["-IMAGE-"].update(data=None)
                         break
-
-                    elif window == self.window2:  # if closing win 2, mark as close
-                        self.window2 = None
 
         except Exception as e:
             if self.webcam_frames_grabber != None:

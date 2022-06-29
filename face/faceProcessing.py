@@ -112,6 +112,9 @@ class EmotionDetector:
 
     def disable_face_bbox(self):
         self._draw_face_bbox = False
+    
+    def set_wh(self, w: int, h: int):
+    	self._face_detector.set_wh(w,h)
 
     def __call__(self, frame: np.array) -> str:
         return self._emotion_predictor(self._face_detector(frame, self._draw_face_bbox))

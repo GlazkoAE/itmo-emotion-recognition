@@ -10,6 +10,11 @@ from moviepy.editor import VideoFileClip
 
 from face.faceProcessing import EmotionDetector
 
+import grpc
+import pickle
+
+from service import service_pb2 as spb2
+from service import service_pb2_grpc as spb2grpc
 
 class FPS:
     def __init__(self, interval=30):
@@ -65,6 +70,9 @@ class App:
         # processing frames resolution
         self.w = None
         self.w = None
+        
+        self.channel = grpc.insecure_channel('localhost:13000')
+        self.stub = spb2grpc.RequestHandlerStub(self.channel)
 
     def settings_window(self):
         """
@@ -80,8 +88,8 @@ class App:
         """
         self.emotion_detector = EmotionDetector(
             inp_img_w=frame_w, inp_img_h=frame_h, draw_face_bbox=draw_face_bbox
-        )
-
+            )
+             
     def make_main_window(self):
         layout = [
             [sg.Image(key="-IMAGE-")],
@@ -107,6 +115,7 @@ class App:
     def process_frame(self, get_frame, t):
         frame = get_frame(t)
         emotion = self.emotion_detector(frame)
+
         cv2.putText(
             frame,
             f"Facial emotion: {emotion}",
@@ -128,12 +137,24 @@ class App:
                 if self.webcam_frames_grabber:
                     frame = self.webcam_frames_grabber.read()
 
-                    face_emotion = self.emotion_detector(frame)
+                    #face_emotion = self.emotion_detector(frame)
+                    
+                    
+                    #image_np = np.array(Image.open('/usr/app/input/eiffel-tower.jpg'))
+                    #image = Image.fromarray(image_np.astype('uint8')) # Transforming np array image into Pillow's Image class
+                    query = spb2.sourceImage(
+                                        image=pickle.dumps(frame),
+                                        width=frame.shape[1],
+                                        height=frame.shape[0]
+                                        )
+                    response = self.stub.GetEncode(query)
+                    processed_frame = pickle.loads(response.image)
+                    #image_transformed.save('/usr/app/output/eiffel-tower-transformed.jpg')
 
-                    imgbytes = cv2.imencode(".png", frame)[1].tobytes()
+                    imgbytes = cv2.imencode(".png", processed_frame)[1].tobytes()
                     self.window1["-IMAGE-"].update(data=imgbytes)
                     self.window1["-TEXT-"].update(
-                        value=f"Fps: {int(self.fps.fps())}, emotion: {face_emotion}"
+                        value=f"Fps: {int(self.fps.fps())}, emotion: {response.prediction}"
                     )
 
                 if (
